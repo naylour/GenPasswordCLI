@@ -1,69 +1,30 @@
+mod args;
+mod chars;
+
+use args::get_args;
+use chars::{GetCharsOption, get_chars};
+
 use arboard::Clipboard;
-use clap::Parser;
 use colored::*;
-use rand::{rand_core::le, random_range, rng, seq::IndexedRandom};
+use rand::{random_range, rng, seq::IndexedRandom};
 use zxcvbn::zxcvbn;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    #[arg(short = 'l', long, help = "Длина пароля(по умолчанию до 255)")]
-    length: Option<usize>,
-
-    #[arg(long, help = "Свой набор символов")]
-    chars: Option<String>,
-
-    #[arg(short = 's', long, help = "Без символов")]
-    nsymbol: bool,
-
-    #[arg(long, help = "Без верхнего регистра")]
-    nupper: bool,
-
-    #[arg(long, help = "Без нижнего регистра")]
-    nlower: bool,
-
-    #[arg(short = 'd', long, help = "Без чисел")]
-    ndigits: bool,
-
-    #[arg(long, help = "Скопировать в буфер обмена")]
-    clipboard: bool,
-
-    #[arg(long, help = "Показать силу пароля")]
-    score: bool,
-}
-
-const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
-const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const DIGITS: &str = "0123456789";
-const SYMBOLS: &str = "!@#$^*()-_=+[]{};:'\",.<>/|\\`~";
-
 fn main() {
-    let args = Args::parse();
+    let args = get_args();
     let mut clipboard = Clipboard::new().unwrap();
-    let mut length: usize = 0;
+    let length: usize = args.length.unwrap_or(random_range(4..255));
 
     let mut chars = String::new();
-
-    match args.length {
-        Some(_length) => length = _length,
-        None => length = random_range(4..255),
-    }
 
     match args.chars {
         Some(ref _chars) => chars += _chars,
         None => {
-            if !args.ndigits {
-                chars += DIGITS;
-            }
-            if !args.nupper {
-                chars += UPPERCASE;
-            }
-            if !args.nlower {
-                chars += LOWERCASE;
-            }
-            if !args.nsymbol {
-                chars += SYMBOLS;
-            }
+            chars = get_chars(GetCharsOption {
+                digits: !args.ndigits,
+                lower: !args.nlower,
+                upper: !args.nupper,
+                symbol: !args.nsymbol,
+            });
         }
     }
 

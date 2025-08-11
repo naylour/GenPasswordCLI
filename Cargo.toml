@@ -9,3 +9,11 @@ clap = { version = "4.5.43", features = ["derive"] }
 colored = "3.0.0"
 rand = "0.9.2"
 zxcvbn = "3.1.0"
+
+
+[profile.release]
+opt-level = "z"   # Оптимизация на размер (z или s)
+lto = true        # Link Time Optimization
+codegen-units = 1 # Медленнее компиляция, но меньше размер
+strip = true      # Стрипаем отладочную инфу (в новых версиях cargo)
+panic = "abort"   # Паника = завершение, без развёртывания стека
